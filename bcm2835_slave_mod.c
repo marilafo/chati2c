@@ -256,16 +256,16 @@ static ssize_t dev_attr_show(struct kobject *kobj, struct kobj_attribute *attr, 
   sprintf(buf, "%d\n", address_file);
   if(global_dev == NULL)
     return ret;
-  return address_show(global_dev, attr, buf);
+  return address_show(global_dev, (struct device_attribute*)attr, buf);
 }
 
-static ssize_t dev_attr_store(struct kobject *kobj, struct kobj_attribute *attr, char *buf, size_t size)
+static ssize_t dev_attr_store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf, size_t size)
 {
   int ret = -1;
   sscanf(buf, "%du", &address_file);
   if (global_dev == NULL)
     return ret;
-  ret = address_store(global_dev, attr, buf, size);
+  ret = address_store(global_dev, (struct device_attribute*)attr, buf, size);
   return ret;
 }
 
