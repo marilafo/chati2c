@@ -59,7 +59,26 @@ int rmmod_module(char *name){
 
 int main(int argc, char **argv)
 {
-	char tx_buffer[TX_BUF_SIZE];
+
+	if(insmod_module("bcm2835_slave_mod.ko")!=0){
+		perror("error insmod");
+		return EXIT_FAILURE;	
+	}
+	printf("Insmod done");
+
+	/*if(rmmod_module("bcm2835_slave_mod")!=0){
+		perror("error rmmod");
+		return EXIT_FAILURE;
+	}
+	
+	printf("rmmod done");
+	*/
+	
+	return EXIT_SUCCESS;
+
+
+
+/*	char tx_buffer[TX_BUF_SIZE];
 	int fd;
 	uint8_t data;
 	int length;
@@ -101,5 +120,6 @@ int main(int argc, char **argv)
 	}
 
 	close(fd);
-	return 0;
+	return 0;*/
+	
 }
