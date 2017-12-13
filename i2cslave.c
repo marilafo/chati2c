@@ -11,20 +11,23 @@
 #include <sys/syscall.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/type.h>
+#include <sys/types.h>
 #include <linux/module.h>
 
 #define TX_BUF_SIZE   4000
 
 #define DEFAULT_DEVICE "/dev/i2c_slave"
 
+#define init_module(mod, len, opts) syscall(__NR_init_module, mod, len, opts)
+#define delete_module(name, flags) syscall(__NR_delete_module, name, flags)
+
 int insmod_module(char *name){
 	int fd; 
 	size_t image_size;
 	struct stat st;
-	void *iamge;
+	void *image;
 
-	fd = open(namen O_RDONLY);
+	fd = open(name, O_RDONLY);
 	if (fd == -1){
 		perror("open modules");
 		return -1;
