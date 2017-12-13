@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -11,11 +12,47 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/type.h>
-
+#include <linux/module.h>
 
 #define TX_BUF_SIZE   4000
 
 #define DEFAULT_DEVICE "/dev/i2c_slave"
+
+int insmod_module(char *name){
+	int fd; 
+	size_t image_size;
+	struct stat st;
+	void *iamge;
+
+	fd = open(namen O_RDONLY);
+	if (fd == -1){
+		perror("open modules");
+		return -1;
+	}
+
+	fstat(fd, &st);
+	image_size = st.st_size;
+	image = malloc(image_size);
+	read(fd, image, image_size);
+	close(fd);
+
+	if(init_module(image, image_size, "") != 0){
+		perror("init modules");
+		return -1;
+	}
+	free(image);
+
+	return 0;
+}
+
+int rmmod_module(char *name){
+	if(delete_module(name, O_NONBLOCK) != 0){
+		perror("delete module");
+		return -1;
+	}
+	return 0;
+}
+
 
 int main(int argc, char **argv)
 {
