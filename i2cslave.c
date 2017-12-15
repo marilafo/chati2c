@@ -16,9 +16,12 @@
 #define TX_BUF_SIZE   4000
 
 #define DEFAULT_DEVICE "/dev/i2c_slave"
+#define DEFAULT_ADRESS "/sys/kernel/i2c_slave_dir" 
 
 #define init_module(mod, len, opts) syscall(__NR_init_module, mod, len, opts)
 #define delete_module(name, flags) syscall(__NR_delete_module, name, flags)
+
+
 
 int insmod_module(char *name){
 	int fd; 
@@ -69,9 +72,6 @@ int main(int argc, char **argv)
 	int mode = 0;
 	FILE *usage_file = stderr;
 	const char *input = DEFAULT_DEVICE;
-
-
-
 	
 	int position = 1;
 	int random = 0;
@@ -123,11 +123,23 @@ int main(int argc, char **argv)
 		}
 		else{
 			addr = tx_buffer[1];
+			printf("Address is : Ox%x", tx_buffer[1]);
 			break;
 		}
 	}
 
 	//Changement d'adresse 
+	
+	File *addr_file = fopen(DEFAULT_ADRESS,"r+");
+	if (addr_file == NULL){
+		perror("opening address file");
+		return EXIT_FAILURE;
+	}
+	
+	fputc(tx_buffer[1],addr_file);
+
+	fclose(addr_file)
+
 	
 
 	//Attente des demande du slave, peut etre faire un temps d'attente, ou une sortie
@@ -142,10 +154,9 @@ int main(int argc, char **argv)
 			
 			srand(time(NULL));
 			random = rand();
-
-			printf("début pause\n");
-			sleep(5);
-			printf("fin pause\n");
+			
+			ans_buffer[0]=position;
+			and_buffer[1]=position;
 
 			length=2;
 			write(fd, tx_buffer, length);
