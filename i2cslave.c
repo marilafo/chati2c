@@ -59,18 +59,24 @@ int rmmod_module(char *name){
 
 int change_addr(char *s){
 	//Changement d'adresse 
-	printf("Coucou\n");	
 	FILE *addr_file = fopen(DEFAULT_ADRESS,"w+");
 	if (addr_file == NULL){
 		perror("opening address file");
-		return EXIT_FAILURE;
+		return -1;
 	}
 	
 	fputs(s,addr_file);
 
 	fclose(addr_file);
+}
 
-
+int delete_i2c_module(int fd){
+	close(fd);
+	if(rmmod_module("bcm2835_slave_mod")!=0){
+		perror("error rmmod");
+		return -1;
+	}
+	return 0;
 
 }
 
@@ -88,7 +94,7 @@ int main(int argc, char **argv)
 	const char *input = DEFAULT_DEVICE;
 	
 	//Position : indique chambre, salon, etc .. Mettre dans fichier de config 
-	int position = 1;
+	int position = 201;
 	int alea;
 	int random = 0;
 	int i = 0;
@@ -109,7 +115,8 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;	
 		}
 		
-		change_addr("0x42");
+		if (change_addr("0x42") == -1)
+			return EXIT_FAILURE;
 
 		//Ouverture du fichier du module
 		printf("Ouverture i2c\n");
@@ -120,8 +127,7 @@ int main(int argc, char **argv)
 
 
 		alea = rand()%100;
-		while (alea == 77)
-			alea = rand()%100;
+	
 
 		//Tentative de récupération de l'adresse :
 
@@ -136,7 +142,7 @@ int main(int argc, char **argv)
 			{
 				if (test_question == 1)
 					continue;
-				if (tx_buffer[j] == 77){
+				if (tx_buffer[j] == 200){
 					test_question = 1;
 					printf("Coucou\n");
 					ans_buffer[0]=alea;
@@ -150,7 +156,7 @@ int main(int argc, char **argv)
 			if (test_question == 1)	
 				continue;	
 			
-			if (i > 0 && tx_buffer[0] == alea){
+			if (tx_buffer[0] == alea){
 				has_addr = 1;
 				break;		
 			}
@@ -159,15 +165,36 @@ int main(int argc, char **argv)
 				
 		}
 		//Aprés 2 essais on s'enlève et on réétablie la connexion
+		//Test de l'addresse passé par le master
 		if (i == 3){
 			printf("Suppression du modules\n");
-			close(fd);
-			if(rmmod_module("bcm2835_slave_mod")!=0){
-				perror("error rmmod");
+			
+			if (delete_i2c_module(fd) == -1)
 				return EXIT_FAILURE;
-			}
+			
 				
 		}
+		else if (tx_buffer[1] == 230){
+			printf("Room not valid");
+			if (delete_i2c_module(fd) == -1)
+				return EXIT_FAILURE;
+			return -1;
+		}
+			
+		else if (tx_buffer[1] == 231){
+			printf("Room not free");
+			if (delete_i2c_module(fd) == -1)
+				return EXIT_FAILURE;
+			return -1;
+		}
+		
+		else if ( tx_buffer[1] < 3 || tx_buffer[1] > 118){
+			printf("Suppresion du modules\n");
+			has_addr = 0;
+			if(delete_i2c_module(fd) == -1)
+				return EXIT_FAILURE;
+		}
+		
 		else{
 			printf("Changement d'adresse");
 			addr = tx_buffer[1];
@@ -175,22 +202,26 @@ int main(int argc, char **argv)
 			ans_buffer[1] = 120;
 			ans_buffer[1] = 119;
 			//ACK
-			write(fd, ans_buffer, 3);
+			//write(fd, ans_buffer, 3);
 
-			printf("Address is : Ox%d", tx_buffer[1]);
+			printf("Address is : Ox%x\n", addr);
 			break;
 		}
 	}
 	printf("endi\n");
 
 	//Changement d'adresse 
+	char addr_format[4];
+	sprintf(addr_format, "0x%x", addr);
+	printf("chaine : %s\n", addr_format);
+
 	
-	/*
-	 change_addr(tx_buffer[1]);
+	if (change_addr(addr_format) == -1)
+		return EXIT_FAILURE;
 	
 
 	//Attente des demande du slave, peut etre faire un temps d'attente, ou une sortie
-	while (1) {	
+	/*while (1) {	
 			length = read(fd, tx_buffer, TX_BUF_SIZE);
 			for(i = 0; i < length; i++)
 			{
@@ -212,11 +243,6 @@ int main(int argc, char **argv)
 	}
 
 	//Suppression du module
-	close(fd);
-	if(rmmod_module("bcm2835_slave_mod")!=0){
-		perror("error rmmod");
-		return EXIT_FAILURE;
-	}
 	*/
 	return 0;
 	
