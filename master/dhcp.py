@@ -36,6 +36,7 @@ def check_end_answer(ans,n):
     if ans[n-1] == 119 :
         print "ok"
         return 0
+    ret = -1 
     while no_end == 1:
         try: 
             ret = bus.read_byte(DEVICE_ADDRESS);

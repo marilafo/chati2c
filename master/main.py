@@ -31,12 +31,15 @@ def dhcp_func() :
                         continue
                     else:
                         addr = i
+                        used_addr.append = i 
                         break
             break
         else :
             addr = 231 #Le code room n'existe pas
     dhcp.send_addr(ans[0],addr)
     
+def main():
+    while 1 :
+        dhcp_func()
 
-dhcp_func()
-    
+main()    
