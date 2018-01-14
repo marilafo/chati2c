@@ -11,7 +11,7 @@ def look_for_device():
     while True:
         try:
             #Message (42,42) pour demander quel est le type de rasp que l'on a;
-            bus.write_byte_data(DEVICE_ADDRESS, 77 , 77)
+            bus.write_byte_data(DEVICE_ADDRESS, 200, 200)
             break
         except Exception as e:
             print (e)
@@ -46,29 +46,17 @@ def check_end_answer(ans,n):
         if ret == 119 or cmpt > 5:
             return 1
 
-
-def send_addr():
-    ans = read_device_answer(3)
+def check_dhcp_ans(ans):
     if check_end_answer(ans,3) == 1 or ans[0] == 119 or ans[1] == 119:
         print "ko"
-        main()
-        return 
-    #TODO : choix de l'adresse
+        return -1
+    return 0
+    
+
+def send_addr(nb_alea, addr):
     try :
-        bus.write_byte_data(DEVICE_ADDRESS, ans[0] , 14)
+        bus.write_byte_data(DEVICE_ADDRESS, nb_alea , addr)
     except Exception as e:
         print (e)
         print("Write failed")
-
-def main() :
-    loop = 1
-    look_for_device()
-    print "loop : "
-    print loop
-    loop = loop + 1
-    send_addr()
-    test=read_device_answer(3)
-    check_end_answer(test,3)
-    
-main()
     
