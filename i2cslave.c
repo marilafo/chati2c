@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	const char *input = DEFAULT_DEVICE;
 	
 	//Position : indique chambre, salon, etc .. Mettre dans fichier de config 
-	int position = 201;
+	int position = 202;
 	int alea;
 	int random = 0;
 	int i = 0;
