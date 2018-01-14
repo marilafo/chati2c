@@ -1,10 +1,10 @@
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <curses.h>
 #include <time.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -12,11 +12,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
 #define TX_BUF_SIZE   4000
 
 #define DEFAULT_DEVICE "/dev/i2c_slave"
-#define DEFAULT_ADRESS "/sys/kernel/i2c_slave_dir" 
+#define DEFAULT_ADRESS "/sys/kernel/i2c_slave_dir/address_file" 
 
 #define init_module(mod, len, opts) syscall(__NR_init_module, mod, len, opts)
 #define delete_module(name, flags) syscall(__NR_delete_module, name, flags)
@@ -58,6 +57,22 @@ int rmmod_module(char *name){
 	return 0;
 }
 
+int change_addr(char *s){
+	//Changement d'adresse 
+	printf("Coucou\n");	
+	FILE *addr_file = fopen(DEFAULT_ADRESS,"w+");
+	if (addr_file == NULL){
+		perror("opening address file");
+		return EXIT_FAILURE;
+	}
+	
+	fputs(s,addr_file);
+
+	fclose(addr_file);
+
+
+
+}
 
 int main(int argc, char **argv)
 {
@@ -66,16 +81,18 @@ int main(int argc, char **argv)
 	int fd;
 	uint8_t data;
 	int length;
-	int i;
 
 	int opt;
 	int mode = 0;
 	FILE *usage_file = stderr;
 	const char *input = DEFAULT_DEVICE;
 	
+	//Position : indique chambre, salon, etc .. Mettre dans fichier de config 
 	int position = 1;
+	int alea;
 	int random = 0;
 	int i = 0;
+	int j;
 	int has_addr = 0;
 	char addr;
 	while(has_addr != 1){
@@ -84,37 +101,67 @@ int main(int argc, char **argv)
 		srand(time(NULL));
 		random=rand()%1000000;
 		usleep(random+position);
+		printf("Insertion du modules\n");
+		
 
 		if(insmod_module("bcm2835_slave_mod.ko")!=0){
 			perror("error insmod");
 			return EXIT_FAILURE;	
 		}
+		
+		change_addr("0x42");
 
 		//Ouverture du fichier du module
+		printf("Ouverture i2c\n");
 		if ((fd = open(input, O_RDWR)) == -1) {
 			perror("open i2c device");
 			exit(EXIT_FAILURE);
 		}
 
 
-		//Tentative de récupération de l'adresse :
-		for (i = 0; i < 3 ; i++){
-			length = read(fd, tx_buffer, TX_BUF_SIZE);
-			if (i > 0 && tx_buffer[0] == position)
-				has_addr = 1;		
+		alea = rand()%100;
+		while (alea == 77)
+			alea = rand()%100;
 
-			for(i = 0; i < length; i++)
+		//Tentative de récupération de l'adresse :
+
+		for (i = 0; i < 3 ; i++){
+			printf("boucle : %d\n", i);
+			length = read(fd, tx_buffer, TX_BUF_SIZE);
+	
+			printf("Buffer : [%d,%d]\n",tx_buffer[0], tx_buffer[1]);
+		
+			int test_question=0;	
+			for(j = 0; j < length; j++)
 			{
-				printf("Data received : %d \n", tx_buffer[i]);
+				if (test_question == 1)
+					continue;
+				if (tx_buffer[j] == 77){
+					test_question = 1;
+					printf("Coucou\n");
+					ans_buffer[0]=alea;
+					ans_buffer[1]=position;
+					ans_buffer[2]=119;
+
+					write(fd, ans_buffer, 3);
+				}
+
+			}
+			if (test_question == 1)	
+				continue;	
+			
+			if (i > 0 && tx_buffer[0] == alea){
+				has_addr = 1;
+				break;		
 			}
 
-			ans_buffer[0]=position;
 
-			write(fd, tx_buffer, length);
+				
 		}
 		//Aprés 2 essais on s'enlève et on réétablie la connexion
 		if (i == 3){
-			close(fd)
+			printf("Suppression du modules\n");
+			close(fd);
 			if(rmmod_module("bcm2835_slave_mod")!=0){
 				perror("error rmmod");
 				return EXIT_FAILURE;
@@ -122,24 +169,24 @@ int main(int argc, char **argv)
 				
 		}
 		else{
+			printf("Changement d'adresse");
 			addr = tx_buffer[1];
-			printf("Address is : Ox%x", tx_buffer[1]);
+			ans_buffer[0] = alea;
+			ans_buffer[1] = 120;
+			ans_buffer[1] = 119;
+			//ACK
+			write(fd, ans_buffer, 3);
+
+			printf("Address is : Ox%d", tx_buffer[1]);
 			break;
 		}
 	}
+	printf("endi\n");
 
 	//Changement d'adresse 
 	
-	File *addr_file = fopen(DEFAULT_ADRESS,"r+");
-	if (addr_file == NULL){
-		perror("opening address file");
-		return EXIT_FAILURE;
-	}
-	
-	fputc(tx_buffer[1],addr_file);
-
-	fclose(addr_file)
-
+	/*
+	 change_addr(tx_buffer[1]);
 	
 
 	//Attente des demande du slave, peut etre faire un temps d'attente, ou une sortie
@@ -156,10 +203,12 @@ int main(int argc, char **argv)
 			random = rand();
 			
 			ans_buffer[0]=position;
-			and_buffer[1]=position;
+			ans_buffer[1]=position;
 
 			length=2;
 			write(fd, tx_buffer, length);
+
+			//TODO planifier une sortie
 	}
 
 	//Suppression du module
@@ -168,7 +217,7 @@ int main(int argc, char **argv)
 		perror("error rmmod");
 		return EXIT_FAILURE;
 	}
-	
+	*/
 	return 0;
 	
 }
