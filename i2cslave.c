@@ -176,19 +176,20 @@ int main(int argc, char **argv)
 		}
 		else if (tx_buffer[1] == 230){
 			printf("Room not valid");
+			has_addr = 0;
 			if (delete_i2c_module(fd) == -1)
 				return EXIT_FAILURE;
-			return -1;
 		}
 			
 		else if (tx_buffer[1] == 231){
 			printf("Room not free");
+			has_addr = 0;
 			if (delete_i2c_module(fd) == -1)
 				return EXIT_FAILURE;
-			return -1;
 		}
 		
 		else if ( tx_buffer[1] < 3 || tx_buffer[1] > 118){
+			printf("Wrong address");
 			printf("Suppresion du modules\n");
 			has_addr = 0;
 			if(delete_i2c_module(fd) == -1)
