@@ -61,3 +61,7 @@ def get_room_by_addr(addr):
                 return i[0]
     return "not used"
 
+def get_nb_room(room):
+    for i in list_room :
+        if i[0] == room :
+            return i[3]
