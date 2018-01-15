@@ -101,6 +101,18 @@ int main(int argc, char **argv)
 	int j;
 	int has_addr = 0;
 	char addr;
+
+	if (argc < 2){
+		printf("Usage\nsudo ./daemon position\n");
+		printf("201 : salon\n202 : bedroom\n203 : kitchen\n204 : bathroom\n");
+		printf("205 : wc\n206 : office\n207 : entrance\n");
+	}
+	position = atoi(argv[1]);
+	
+	if (position < 201 || position > 207)
+		position = 201;	
+
+
 	while(has_addr != 1){
 	
 		//Insertion du module aprés un temps aléatoire
@@ -115,7 +127,7 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;	
 		}
 		
-		if (change_addr("0x42") == -1)
+		if (change_addr("0x77") == -1)
 			return EXIT_FAILURE;
 
 		//Ouverture du fichier du module
@@ -133,8 +145,8 @@ int main(int argc, char **argv)
 
 		for (i = 0; i < 3 ; i++){
 			printf("boucle : %d\n", i);
-			length = read(fd, tx_buffer, TX_BUF_SIZE);
 	
+			length = read(fd, tx_buffer, 2);
 			printf("Buffer : [%d,%d]\n",tx_buffer[0], tx_buffer[1]);
 		
 			int test_question=0;	
@@ -220,31 +232,200 @@ int main(int argc, char **argv)
 	if (change_addr(addr_format) == -1)
 		return EXIT_FAILURE;
 	
-
+	int master_listen = 1;
+	int temp = 0;
 	//Attente des demande du slave, peut etre faire un temps d'attente, ou une sortie
-	/*while (1) {	
-			length = read(fd, tx_buffer, TX_BUF_SIZE);
-			for(i = 0; i < length; i++)
-			{
-				printf("Data received : %d \n", tx_buffer[i]);
+	while (master_listen == 1) {	
+		printf("Wait for instructions");	
+				
+		length = read(fd, tx_buffer, 2);
+		if (tx_buffer[0] == 130){
+			if (tx_buffer[1] == 139){
+		
+				ans_buffer[0]=1;
+				ans_buffer[1]=119;
+				printf("Je suis la\n");
+
+				write(fd, ans_buffer, 2);
 			}
-			tx_buffer[0]=1;
-			tx_buffer[1]=1;
-			
-			srand(time(NULL));
-			random = rand();
-			
-			ans_buffer[0]=position;
-			ans_buffer[1]=position;
+			else if (tx_buffer[1] == 140){
+				if (position == 201){
+					ans_buffer[0] = 207; 
+					ans_buffer[1] = 142;
+					ans_buffer[2] = 119;
 
-			length=2;
-			write(fd, tx_buffer, length);
+					write(fd, ans_buffer, 2);
 
-			//TODO planifier une sortie
+					read(fd, tx_buffer, 2);
+					int k = tx_buffer[1];
+					int l = 0;
+					for ( l = 0; l < k; l++){
+						write(fd, tx_buffer, 2);
+						printf("Lumière salon :%d\n", tx_buffer[1]);
+					}
+				}
+				else{
+					ans_buffer[0] = 149;
+					ans_buffer[1] = 149;
+					ans_buffer[2] = 119;
+					write(fd, ans_buffer, 2);
+				}
+			}	
+			else if (tx_buffer[1] == 141){
+				temp = rand()%20;
+
+				ans_buffer[0]=temp;
+				ans_buffer[1]=119;
+			
+				printf("Température : %d\n", temp);
+				write(fd, ans_buffer, 2);
+			}
+			else if (tx_buffer[1] == 142){
+				temp = rand()%1;
+
+				ans_buffer[0]=temp;
+				ans_buffer[1]=119;
+
+				printf("Lumière : %d\n", temp); 
+			
+				write(fd, ans_buffer, 2);
+			}
+			else if (tx_buffer[1] == 143){
+				switch(position){
+					case 201 : 
+						ans_buffer[0] = 5;
+						ans_buffer[1] = 119;
+						write(fd, ans_buffer, 2);
+						
+						ans_buffer[0] = 's';
+						ans_buffer[1] = 'a';
+						ans_buffer[2] = 'l';
+						ans_buffer[3] = 'o';
+						ans_buffer[4] = 'n';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 5);
+						break;
+					
+					case 202 :
+						ans_buffer[0] = 7; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'b';
+						ans_buffer[1] = 'e';
+						ans_buffer[2] = 'd';
+						ans_buffer[3] = 'r';
+						ans_buffer[4] = 'o';
+						ans_buffer[5] = 'o';
+						ans_buffer[6] = 'm';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 7);
+						break;
+					case 203 :
+						ans_buffer[0] = 7; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'k';
+						ans_buffer[1] = 'i';
+						ans_buffer[2] = 't';
+						ans_buffer[3] = 'c';
+						ans_buffer[4] = 'h';
+						ans_buffer[5] = 'e';
+						ans_buffer[6] = 'n';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 7);
+						break;
+				
+					case 204 :
+						ans_buffer[0] = 8; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'b';
+						ans_buffer[1] = 'a';
+						ans_buffer[2] = 't';
+						ans_buffer[3] = 'h';
+						ans_buffer[4] = 'r';
+						ans_buffer[5] = 'o';
+						ans_buffer[6] = 'o';
+						ans_buffer[7] = 'm';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 8);
+						break;
+
+					case 205 :
+						ans_buffer[0] = 2; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'w';
+						ans_buffer[1] = 'c';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 2);
+						break;
+					
+					case 206 :
+						ans_buffer[0] = 6; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'o';
+						ans_buffer[1] = 'f';
+						ans_buffer[2] = 'f';
+						ans_buffer[3] = 'i';
+						ans_buffer[4] = 'c';
+						ans_buffer[5] = 'e';
+						
+						printf("Name : %s\n", ans_buffer);
+						
+						write(fd, ans_buffer, 6);
+						break;
+				
+					case 207 :
+						ans_buffer[0] = 8; 
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+					
+						ans_buffer[0] = 'e';
+						ans_buffer[1] = 'n';
+						ans_buffer[2] = 't';
+						ans_buffer[3] = 'r';
+						ans_buffer[4] = 'a';
+						ans_buffer[5] = 'n';
+						ans_buffer[6] = 'c';
+						ans_buffer[7] = 'e';
+						printf("Name : %s\n", ans_buffer);
+						write(fd, ans_buffer, 8);
+						break;	
+
+					default :
+
+						ans_buffer[0] = 0;
+						ans_buffer[1] = 119; 
+						write(fd, ans_buffer, 2);
+						break;
+
+					
+					
+						
+
+				}
+			}
+		}
+		else if (tx_buffer[0] == 199){
+			printf("Suppresion du modules\n");
+			has_addr = 0;
+			if(delete_i2c_module(fd) == -1)
+				return EXIT_FAILURE;
+
+		}
+		
+		
+
+		
 	}
 
-	//Suppression du module
-	*/
 	return 0;
 	
 }
