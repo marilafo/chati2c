@@ -236,9 +236,10 @@ int main(int argc, char **argv)
 	int temp = 0;
 	//Attente des demande du slave, peut etre faire un temps d'attente, ou une sortie
 	while (master_listen == 1) {	
-		printf("Wait for instructions");	
+		printf("Wait for instructions\n");
 				
 		length = read(fd, tx_buffer, 2);
+		printf("[%d;%d]\n",tx_buffer[0], tx_buffer[1]); 	
 		if (tx_buffer[0] == 130){
 			if (tx_buffer[1] == 139){
 		
