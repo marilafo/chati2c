@@ -42,12 +42,14 @@ def dhcp_func() :
 
 
 def check_slave_ok(addr):
-    dhcp.send_msg(addr, 130, 139)
+    ok = -1
+    while ok == -1:
+        ok = dhcp.send_msg(addr, 130, 139)
     ans = dhcp.read_device_answer(addr, 2)
     err = dhcp.check_end_answer(addr, ans, 2)
     if err == 0 :
-        if ans[0] == 1
-        return 0
+        if ans[0] == 1:
+            return 0
     else:
         return -1
 
@@ -55,7 +57,9 @@ def check_slave_ok(addr):
 
 
 def ask_temperature(addr):
-    dhcp.send_msg(addr, 130, 141)
+    ok = -1
+    while ok == -1:
+        ok = dhcp.send_msg(addr, 130, 141)
     ans = dhcp.read_device_answer(addr, 2)
     err = dhcp.check_end_answer(addr, ans, 2)
     if err == 0 :
@@ -64,7 +68,9 @@ def ask_temperature(addr):
         return -1
 
 def ask_light(addr):
-    dhcp.send_msg(addr, 130, 142)
+    ok = -1 
+    while ok == -1 :
+        ok = dhcp.send_msg(addr, 130, 142)
     ans = dhcp.read_device_answer(addr, 2)
     err = dhcp.check_end_answer(addr, ans, 2)
     if err == 0 :
@@ -73,45 +79,55 @@ def ask_light(addr):
         return -1
 
 def ask_name(addr):
-    dhcp.send_msg(addr, 130, 143)
+    ok = -1 
+    room = []
+    while ok == -1 :
+        ok = dhcp.send_msg(addr, 130, 143)
     ans = dhcp.read_device_answer(addr, 2)
     err = dhcp.check_end_answer(addr, ans, 2)
     cmpt = ans[0]
     if err == 0 :
-        name = dhcp.read_device(addr, cmpt)
-        return name
+        name = dhcp.read_device_answer(addr, cmpt)
+        for i in name :
+            room.append(str(unichr(i)))
+            
+        return room
     else:
         return -1
 
-def shutdown_slace(addr):
-    dhcp.send_msg(addr, 199, 199)
+def shutdown_slave(addr):
+    ok = -1
+    while ok == -1 :
+        ok = dhcp.send_msg(addr, 199, 199)
+
 
 def ask_slave_request(addr):
-    res = []
-    dhcp.send_msg(addr, 130, 140)
+    res = -1
+    ok = -1 
+    while ok == -1:
+        ok = dhcp.send_msg(addr, 130, 140)
     ans = dhcp.read_device_answer(addr, 3)
     err = dhcp.check_end_answer(addr, ans, 3)
     if err == 0 :
-        if i[0] == 149:
+        if ans[0] == 149:
             return 
         for i in code_room :
             if i[1] == ans[0]:
                 room = i[0]
                 break
-        addr_range = get_addr_range(room)
+        addr_range = lh.get_addr_range(room)
+
         for j in addr_range:
             if j in used_addr :
                 if ans[1] == 141 :
-                    res.append = ask_temperature(j)
+                    while res == -1 :
+                        res = ask_temperature(j)
                 elif ans[1] == 142 :
-                    res.append = ask_light(j)  
-        res.remove(-1) 
-        l = len(res)
-        send_msg(addr, 145, l)
-        for k in range (0,l):
-            send_msg(addr, 145, k)
+                    while res == -1:
+                        res = ask_light(j)  
+        dhcp.send_msg(addr, 145, res)
     else:
-        send_msg(addr, 145, 144)
+        dhcp.send_msg(addr, 145, 144)
 
 
 
@@ -121,5 +137,3 @@ def main():
     while 1 :
         dhcp_func()
 
-
-main()    

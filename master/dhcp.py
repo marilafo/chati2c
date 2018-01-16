@@ -9,13 +9,12 @@ DEVICE_ADDRESS = 0x77
 
 def send_msg(addr, msg1, msg2):
     try:
-        #Message (42,42) pour demander quel est le type de rasp que l'on a;
-        bus.write_byte_data(DEVICE_ADDRESS, 200, 200)
-        break
+        bus.write_byte_data(addr, msg1, msg2)
+        return 0
     except Exception as e:
-        print (e)
-        print("Write failed")
-
+        #print (e)
+        #print("Write failed")
+        return -1
 
 def read_device_answer(addr, n):
     ans=[]
@@ -55,8 +54,9 @@ def look_for_device():
             bus.write_byte_data(DEVICE_ADDRESS, 200, 200)
             break
         except Exception as e:
-            print (e)
-            print("Write failed")
+            continue
+            #print (e)
+            #print("Write failed")
 
 
 def check_dhcp_ans(ans):
