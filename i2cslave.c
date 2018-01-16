@@ -21,7 +21,7 @@
 #define delete_module(name, flags) syscall(__NR_delete_module, name, flags)
 
 
-
+//Fonction qui permet d'insérer un module
 int insmod_module(char *name){
 	int fd; 
 	size_t image_size;
@@ -49,6 +49,7 @@ int insmod_module(char *name){
 	return 0;
 }
 
+//Fonction qui permet de supprimer un module
 int rmmod_module(char *name){
 	if(delete_module(name, O_NONBLOCK) != 0){
 		perror("delete module");
@@ -57,6 +58,7 @@ int rmmod_module(char *name){
 	return 0;
 }
 
+//Fonction qui permet de changer l'adresse du slave
 int change_addr(char *s){
 	//Changement d'adresse 
 	FILE *addr_file = fopen(DEFAULT_ADRESS,"w+");
@@ -70,6 +72,7 @@ int change_addr(char *s){
 	fclose(addr_file);
 }
 
+//Fonction qui supprime le module i2c
 int delete_i2c_module(int fd){
 	close(fd);
 	if(rmmod_module("bcm2835_slave_mod")!=0){
@@ -112,7 +115,7 @@ int main(int argc, char **argv)
 	if (position < 201 || position > 207)
 		position = 201;	
 
-
+	//On réitère l'ensembre des opérations tant que l'on a pas une nouvelle adresse
 	while(has_addr != 1){
 	
 		//Insertion du module aprés un temps aléatoire
@@ -207,7 +210,7 @@ int main(int argc, char **argv)
 			if(delete_i2c_module(fd) == -1)
 				return EXIT_FAILURE;
 		}
-		
+		//Si on a réuissi à récupérer une adresse, on sort de la boucle
 		else{
 			printf("Changement d'adresse");
 			addr = tx_buffer[1];
