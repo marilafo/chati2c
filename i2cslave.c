@@ -255,15 +255,10 @@ int main(int argc, char **argv)
 					ans_buffer[1] = 142;
 					ans_buffer[2] = 119;
 
-					write(fd, ans_buffer, 2);
+					write(fd, ans_buffer, 3);
 
 					read(fd, tx_buffer, 2);
-					int k = tx_buffer[1];
-					int l = 0;
-					for ( l = 0; l < k; l++){
-						write(fd, tx_buffer, 2);
-						printf("Lumière salon :%d\n", tx_buffer[1]);
-					}
+					printf("%d\n",tx_buffer[1]);
 				}
 				else{
 					ans_buffer[0] = 149;
@@ -296,6 +291,7 @@ int main(int argc, char **argv)
 					case 201 : 
 						ans_buffer[0] = 5;
 						ans_buffer[1] = 119;
+						printf("Buffer_send = [%d,%d]",ans_buffer[0], ans_buffer[1]);
 						write(fd, ans_buffer, 2);
 						
 						ans_buffer[0] = 's';
